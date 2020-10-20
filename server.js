@@ -1,13 +1,13 @@
 const express = require('express')
-const connectDB = require('./config/db') 
+const connectDB = require('./config/db')
 const app = express()
 
 connectDB()
 
-//Init Middleware
-app.use(express.json({extended: false}))
+//Init Middleware - needed to use the middleware in the user.js file for authentication
+app.use(express.json({ extended: false }))
 
-app.get('/', (req, res) => res.send('API Running'))
+app.get('/', (req, res) => res.send('API  Running'))
 
 app.use('/api/users', require('./routes/api/users'))
 app.use('/api/posts', require('./routes/api/posts'))
