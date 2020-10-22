@@ -52,4 +52,5 @@ const PostSchema = Schema({
   },
 });
 
+//eslint-disable-next-line
 module.exports = Post = mongoose.model("post", PostSchema);
