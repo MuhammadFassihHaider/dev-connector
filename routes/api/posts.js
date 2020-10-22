@@ -16,8 +16,8 @@ router.post(
     const error = validationResult(req);
 
     if (!error.isEmpty()) {
-      console.error(error);
-      return res.server(400).json({ Error: error.array() });
+      console.error(error.message);
+      return res.status(400).json({ Error: error.array() });
     }
 
     try {
@@ -37,8 +37,8 @@ router.post(
       await post.save();
       return res.json(post);
     } catch (error) {
-      console.error(error);
-      return res.server(500).json("Server Error");
+      console.error(error.message);
+       res.status(500).json("Server Error");
     }
   }
 );
@@ -49,8 +49,8 @@ router.get("/", auth, async (req, res) => {
     const posts = await Post.find();
     return res.json(posts);
   } catch (error) {
-    console.error(error);
-    return res.server(500).json({ Error: "Server Error" });
+    console.error(error.message);
+     res.status(500).json({ Error: "Server Error" });
   }
 });
 
@@ -59,16 +59,16 @@ router.get("/:getPost_id", auth, async (req, res) => {
   try {
     const post = await Post.findOne({ _id: req.params.getPost_id });
     if (!post) {
-      return res.server(404).json({ msg: "Post not found" });
+      return res.status(404).json({ msg: "Post not found" });
     }
     return res.json(post);
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
 
     if (error.kind === "ObjectId") {
-      return res.server(401).json({ msg: "Not authorized!" });
+      return res.status(401).json({ msg: "Not authorized!" });
     }
-    return res.server(500).send({ Error: "Server Error" });
+    res.status(500).send({ Error: "Server Error" });
   }
 });
 
@@ -81,8 +81,8 @@ router.get("/:getPost_id", auth, async (req, res) => {
 //     await Post.findOneAndRemove({ _id: req.params.del_id });
 //     res.json({ msg: "Deleted" });
 //   } catch (error) {
-//     console.error(error);
-//     return res.server(500).json({ Error: "Server Error" });
+//     console.error(error.message);
+//     res.status(500).json({ Error: "Server Error" });
 //   }
 // });
 
@@ -94,24 +94,24 @@ router.delete("/:del_id", auth, async (req, res) => {
 
     //Check whether the post exists or not
     if (!post) {
-      return res.server(404).json({ msg: "Post not found!" });
+      return res.status(404).json({ msg: "Post not found!" });
     }
 
     // the post.id has the type: Object while req.body.id has type: String
     // Check user
     if (post.user.toString() !== req.user.id) {
-      return res.server(401).json({ msg: "Not authorized!" });
+      return res.status(401).json({ msg: "Not authorized!" });
     }
 
     await post.remove();
     res.json({ msg: "Deleted" });
   } catch (error) {
-    console.error(error);
+    console.error(error.message);
 
     if (error.kind === "ObjectId") {
-      return res.server(401).json({ msg: "Not authorized!" });
+      return res.status(401).json({ msg: "Not authorized!" });
     }
-    return res.server(500).json({ Error: "Server Error" });
+    res.status(500).json({ Error: "Server Error" });
   }
 });
 

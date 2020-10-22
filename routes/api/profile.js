@@ -42,7 +42,7 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.server(400).json({ error: errors.array() });
+      return res.status(400).json({ error: errors.array() });
     }
 
     // creating an empty object that will be populated after verifying if the data exists.
@@ -114,7 +114,7 @@ router.post(
       res.json(profile);
     } catch (error) {
       console.error(error.message);
-      return res.server(500).send({ Error: "Server Error" });
+       res.status(500).send({ Error: "Server Error" });
     }
   }
 );
@@ -127,7 +127,7 @@ router.get("/", async (req, res) => {
     res.json(profile);
   } catch (error) {
     console.error(error.message);
-    return res.server(500).json({ error: error.array() });
+     res.status(500).json({ error: error.array() });
   }
 });
 
@@ -138,7 +138,7 @@ router.get("/profile/:user_id", async (req, res) => {
   }).populate("user", ["name", "avatar"]);
 
   if (!profile)
-    return res.server(400).json({ error: "Profile does not exist" });
+    return res.status(400).json({ error: "Profile does not exist" });
   res.json(profile);
 });
 
@@ -152,7 +152,7 @@ router.delete("/", auth, async (req, res) => {
     res.json({ msg: "User Removed" });
   } catch (error) {
     console.error(error.message);
-    return res.server(500).json({ error: error.array() });
+     res.status(500).json({ error: error.array() });
   }
 });
 
@@ -170,7 +170,7 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.server(400).json({ Error: errors.array() });
+      return res.status(400).json({ Error: errors.array() });
     }
 
     const {
@@ -203,7 +203,7 @@ router.post(
       return res.json(profile);
     } catch (error) {
       console.error(error.message);
-      return res.server(500).json({ error: error.array() });
+       res.status(500).json({ error: error.array() });
     }
   }
 );
@@ -228,7 +228,7 @@ router.delete("/experience/:exp_id", auth, async (req, res) => {
     res.json(profile);
   } catch (error) {
     console.error(error.message);
-    return res.server(500).json({ error: error.array() });
+     res.status(500).json({ error: error.array() });
   }
 });
 
@@ -247,7 +247,7 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.server(400).json({ Error: errors.array() });
+      return res.status(400).json({ Error: errors.array() });
     }
 
     const {
@@ -280,7 +280,7 @@ router.post(
       return res.json(profile);
     } catch (error) {
       console.error(error.message);
-      return res.server(500).json({ error: error.array() });
+       res.status(500).json({ error: error.array() });
     }
   }
 );
@@ -305,7 +305,7 @@ router.delete("/education/:edu_id", auth, async (req, res) => {
     res.json(profile);
   } catch (error) {
     console.error(error.message);
-    return res.server(500).json({ error: error.array() });
+     res.status(500).json({ error: error.array() });
   }
 });
 
@@ -319,17 +319,17 @@ router.get("/github/:username", async (req, res) => {
     };
 
     request(options, (error, response, body) => {
-      if (error) console.error(error);
+      if (error) console.error(error.message);
       
       if (response.statusCode !== 200) {
-        res.status(404).json({ msg: "No Github profile found" });
+       return res.status(404).json({ msg: "No Github profile found" });
       }
       
       res.json(JSON.parse(body));
     });
   } catch (err) {
     console.error(err.message);
-    return res.status(404).json({ msg: "No Github profile found" });
+     res.status(404).json({ msg: "No Github profile found" });
   }
 });
 
