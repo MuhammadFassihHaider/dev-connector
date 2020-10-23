@@ -115,14 +115,14 @@ router.delete("/:id", auth, async (req, res) => {
   }
 });
 
-//LIKE A POST
+// LIKE A POST
 router.put("/like/:id", auth, async (req, res) => {
   try {
     const post = await Post.findOne({ _id: req.params.id });
 
     // from the likes, take each like.
     // take the user in like, convert it to string and see if it is equal to the id of the user that sent the like request.
-    // see if the length of the number of likes from the user that is sending the request is greater than 0 i.e the has the user liked the comment or not!
+    // see if the length of the number of likes from the user that is sending the request is greater than 0 i.e the has the user liked the post or not!
     // if so, send a bad request
     if (
       post.likes.filter((like) => like.user.toString() === req.user.id).length >
@@ -142,7 +142,7 @@ router.put("/like/:id", auth, async (req, res) => {
   }
 });
 
-//UNLIKE A POST
+// UNLIKE A POST
 router.put("/unlike/:id", auth, async (req, res) => {
   try {
     const post = await Post.findOne({ _id: req.params.id });
@@ -155,11 +155,13 @@ router.put("/unlike/:id", auth, async (req, res) => {
       return res.status(400).json({ msg: "Post has not been liked yet!" });
     }
 
-    // otherwise, we are mapping through all the likes. We are converting the user_ids of the like to string and we are seeing if the processed user_id(toString) matches with the user_id of the user that sent the unlike request. 
+    // otherwise, we are mapping through all the likes. We are converting the user_ids of the like to string and we are seeing if the processed user_id(toString) matches with the user_id of the user that sent the unlike request.
     // If so, we are getting back the index
-    const removeLikeIndex = post.likes.map((like) => like.user.toString()).indexOf(req.user.id);
+    const removeLikeIndex = post.likes
+      .map((like) => like.user.toString())
+      .indexOf(req.user.id);
 
-    // We are again taking the whole likes object for that particular post/comment and we are splicing at splice(index of item to be removed, and removing only one item)
+    // We are again taking the whole likes object for that particular post and we are splicing at splice(index of item to be removed, and removing only one item)
     post.likes.splice(removeLikeIndex, 1);
     await post.save();
     res.json(post.likes);
@@ -169,6 +171,70 @@ router.put("/unlike/:id", auth, async (req, res) => {
   }
 });
 
+// ADD A COMMENT
+router.post(
+  "/comment/:id",
+  [auth, [check("text", "Cannot empty comment").not().isEmpty()]],
+  async (req, res) => {
+    const error = validationResult(req);
 
+    if (!error.isEmpty()) {
+      console.error(error.message);
+      return res.status(400).json({ Error: error.array() });
+    }
 
+    try {
+      // check the model for the user. Here, the id is _id. When we were accessing the profile using the id, we wrote it as ({user: req.user.id}) because of the model for Profile
+      const user = await Users.findOne({ _id: req.user.id }).select(
+        "-password"
+      );
+      const post = await Post.findById(req.params.id);
+
+      const newComment = {
+        text: req.body.text,
+        name: user.name,
+        avatar: user.avatar,
+        user: req.user.id,
+      };
+
+      post.comments.unshift(newComment);
+
+      await post.save();
+      return res.json(post);
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).json("Server Error");
+    }
+  }
+);
+
+// DELETE A COMMENT
+router.delete("/comment/:post_id/:comment_id", auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.post_id);
+
+    const comment = post.comments.find(
+      (comment) => comment.id === req.params.comment_id
+    );
+
+    if (!comment) {
+      return res.status(404).json({ Error: "Comment not found!" });
+    }
+
+    if (req.user.id !== comment.user.toString()) {
+      return res.status(401).json({ Error: "Not Authorized!" });
+    }
+
+    const removeCommentIndex = post.comments
+      .map((comment) => comment._id.toString() )
+      .indexOf(req.params.comment_id);
+
+    post.comments.splice(removeCommentIndex, 1);
+    await post.save();
+    res.json(post.comments);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json("Server Error");
+  }
+});
 module.exports = router;
