@@ -38,7 +38,7 @@ router.post(
       return res.json(post);
     } catch (error) {
       console.error(error.message);
-       res.status(500).json("Server Error");
+      res.status(500).json("Server Error");
     }
   }
 );
@@ -50,14 +50,14 @@ router.get("/", auth, async (req, res) => {
     return res.json(posts);
   } catch (error) {
     console.error(error.message);
-     res.status(500).json({ Error: "Server Error" });
+    res.status(500).json({ Error: "Server Error" });
   }
 });
 
 // GET POST BY ID
-router.get("/:getPost_id", auth, async (req, res) => {
+router.get("/:id", auth, async (req, res) => {
   try {
-    const post = await Post.findOne({ _id: req.params.getPost_id });
+    const post = await Post.findOne({ _id: req.params.id });
     if (!post) {
       return res.status(404).json({ msg: "Post not found" });
     }
@@ -76,9 +76,9 @@ router.get("/:getPost_id", auth, async (req, res) => {
 
 // This is fine but the problem here is that anyone will be able to delete the post even if we do not give the option to do that in our front end. Someone could use postman to delete any post.
 
-// router.delete("/:del_id", auth, async (req, res) => {
+// router.delete("/:id", auth, async (req, res) => {
 //   try {
-//     await Post.findOneAndRemove({ _id: req.params.del_id });
+//     await Post.findOneAndRemove({ _id: req.params.id });
 //     res.json({ msg: "Deleted" });
 //   } catch (error) {
 //     console.error(error.message);
@@ -87,10 +87,10 @@ router.get("/:getPost_id", auth, async (req, res) => {
 // });
 
 // Traversy's method
-router.delete("/:del_id", auth, async (req, res) => {
+router.delete("/:id", auth, async (req, res) => {
   try {
     //Get the post
-    const post = await Post.findOne({ _id: req.params.del_id });
+    const post = await Post.findOne({ _id: req.params.id });
 
     //Check whether the post exists or not
     if (!post) {
@@ -114,5 +114,61 @@ router.delete("/:del_id", auth, async (req, res) => {
     res.status(500).json({ Error: "Server Error" });
   }
 });
+
+//LIKE A POST
+router.put("/like/:id", auth, async (req, res) => {
+  try {
+    const post = await Post.findOne({ _id: req.params.id });
+
+    // from the likes, take each like.
+    // take the user in like, convert it to string and see if it is equal to the id of the user that sent the like request.
+    // see if the length of the number of likes from the user that is sending the request is greater than 0 i.e the has the user liked the comment or not!
+    // if so, send a bad request
+    if (
+      post.likes.filter((like) => like.user.toString() === req.user.id).length >
+      0
+    ) {
+      console.error("Post already liked");
+      return res.status(400).json({ msg: "Post already liked!" });
+    }
+
+    // otherwise add a like from the user by adding the userid in the post like object
+    post.likes.unshift({ user: req.user.id });
+    await post.save();
+    res.json(post.likes);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+//UNLIKE A POST
+router.put("/unlike/:id", auth, async (req, res) => {
+  try {
+    const post = await Post.findOne({ _id: req.params.id });
+
+    // same as like but instead, we are seeing if the post has been liked before. If so, we are sending back a bad request
+    if (
+      post.likes.filter((like) => like.user.toString() === req.user.id)
+        .length === 0
+    ) {
+      return res.status(400).json({ msg: "Post has not been liked yet!" });
+    }
+
+    // otherwise, we are mapping through all the likes. We are converting the user_ids of the like to string and we are seeing if the processed user_id(toString) matches with the user_id of the user that sent the unlike request. 
+    // If so, we are getting back the index
+    const removeLikeIndex = post.likes.map((like) => like.user.toString()).indexOf(req.user.id);
+
+    // We are again taking the whole likes object for that particular post/comment and we are splicing at splice(index of item to be removed, and removing only one item)
+    post.likes.splice(removeLikeIndex, 1);
+    await post.save();
+    res.json(post.likes);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
+
 
 module.exports = router;
