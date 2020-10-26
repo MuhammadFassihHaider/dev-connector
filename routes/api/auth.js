@@ -10,6 +10,7 @@ const { check, validationResult } = require("express-validator");
 router.get("/", auth, async (req, res) => {
   console.log(req.body);
   try {
+    
     const user = await User.findById(req.user.id).select("-password");
     res.json(user);
   } catch (error) {
