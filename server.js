@@ -1,7 +1,8 @@
 const express = require('express')
+const cors = require('cors')
 const connectDB = require('./config/db')
 const app = express()
-
+app.use(cors())
 connectDB()
 
 //Init Middleware - needed to use the middleware in the user.js file for authentication
