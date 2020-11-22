@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-//The new keyword does not matter. If we add the new keyword we explicitly create a new instance.
+//The new keyword does not matter. If we add the new keyword, we explicitly create a new instance.
 //If we do not add the new keyword, mongoose creates a new instance for us
 const UserSchema = new mongoose.Schema({
   name: {
